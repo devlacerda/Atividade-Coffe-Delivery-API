@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Coffee {
+  id         String   @id
+  nome       String
+  tipo       String
+  quantidade Int?
+  preco      Float?
+  descricao  String?
+  tags       String[] // campo array (PostgreSQL)
+}

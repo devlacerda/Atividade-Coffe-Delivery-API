@@ -1,19 +1,35 @@
-import { Body, Controller, Get, Param, Post, HttpStatus, HttpCode } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  Body,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { CoffeeService } from './coffee.service';
 import { CreateCoffeeDto } from './dto/create-coffee.dto';
 
-@Controller()
+@Controller('coffees')
 export class CoffeeController {
   constructor(private readonly coffeeService: CoffeeService) {}
 
-  @Post('coffee-create')
+  // POST /coffees
+  @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createCoffeeDto: CreateCoffeeDto) {
-    return this.coffeeService.create(createCoffeeDto);
+  create(@Body() dto: CreateCoffeeDto) {
+    return this.coffeeService.create(dto);
   }
 
-  @Get('coffes/:id/detalhes')
+  // GET /coffees
+  @Get()
+  getAll() {
+    return this.coffeeService.findAll();
+  }
+
+  // GET /coffees/:id
+  @Get(':id')
   getById(@Param('id') id: string) {
-    return this.coffeeService.findById(id);
+    return this.coffeeService.findById(Number(id));
   }
 }

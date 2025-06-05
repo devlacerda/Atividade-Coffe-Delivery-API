@@ -1,56 +1,72 @@
 import { PrismaClient } from '@prisma/client';
-
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.coffee.deleteMany();
+  // Apaga dados existentes na ordem correta
+  await prisma.entrega.deleteMany();
+  await prisma.itemPedido.deleteMany();
+  await prisma.pedido.deleteMany();
+  await prisma.tagCafe.deleteMany();
+  await prisma.cafe.deleteMany();
+  await prisma.cliente.deleteMany();
 
-  const cafes = [
-    {
-      id: '22',
+  // Cria café
+  const cafe = await prisma.cafe.create({
+    data: {
       nome: 'Paraíso',
       tipo: 'Forte',
-      quantidade: 2,
       preco: 25.6,
       descricao: 'Café encorpado com notas intensas de cacau e aroma marcante.',
-      tags: ['intenso', 'cacau', 'tradicional'],
+      tags: {
+        create: [
+          { nome: 'intenso' },
+          { nome: 'cacau' },
+          { nome: 'tradicional' },
+        ],
+      },
     },
-    {
-      id: '30',
-      nome: 'Encanto',
-      tipo: 'Suave',
-      quantidade: 2,
-      preco: 22.0,
-      descricao: 'Bebida delicada com notas florais e toque de frutas vermelhas.',
-      tags: ['floral', 'frutas vermelhas', 'suave'],
-    },
-    {
-      id: '15',
-      nome: 'Aurora',
-      tipo: 'Médio',
-      quantidade: 5,
-      preco: 18.5,
-      descricao: 'Café equilibrado com notas de caramelo e leve acidez.',
-      tags: ['caramelo', 'equilibrado'],
-    },
-  ];
+  });
 
-  for (const cafe of cafes) {
-    await prisma.coffee.upsert({
-      where: { id: cafe.id },
-      update: {},
-      create: cafe,
-    });
-  }
+  // Cria cliente
+  const cliente = await prisma.cliente.create({
+    data: {
+      nome: 'João Silva',
+      email: 'joao@email.com',
+      cpf: '12345678900',
+      telefone: '11999999999',
+    },
+  });
 
-  console.log('🌱 Seed executada com sucesso!');
+  // Cria pedido e entrega
+  await prisma.pedido.create({
+    data: {
+      clienteId: cliente.id,
+      total: 51.2,
+      itens: {
+        create: [
+          {
+            cafeId: cafe.id,
+            quantidade: 2,
+            preco: 25.6,
+          },
+        ],
+      },
+      entrega: {
+        create: {
+          endereco: 'Rua das Rosas, 100',
+          status: 'PENDENTE',
+          dataPrevista: new Date(Date.now() + 3 * 86400000), // 3 dias no futuro
+        },
+      },
+    },
+  });
+
+  console.log('✅ Seed executado com sucesso!');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Erro no seed:', e);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => prisma.$disconnect());

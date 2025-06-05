@@ -19,7 +19,7 @@ API RESTful desenvolvida com **NestJS**, **Prisma ORM** e **PostgreSQL (NeonDB)*
 ### 1. Clone o repositório
 
 ```bash
-git clone 
+git clone https://github.com/devlacerda/Atividade-Coffe-Delivery-API.git
 cd Coffe-Delivery-API
 ```
 

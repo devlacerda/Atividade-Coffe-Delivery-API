@@ -1,10 +1,4 @@
-import { IsString, IsNumber, IsArray, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-
-class TagDto {
-  @IsString()
-  nome: string;
-}
+import { IsString, IsNumber, IsArray, ArrayNotEmpty, Min } from 'class-validator';
 
 export class CreateCoffeeDto {
   @IsString()
@@ -14,13 +8,14 @@ export class CreateCoffeeDto {
   tipo: string;
 
   @IsNumber()
+  @Min(0)
   preco: number;
 
   @IsString()
   descricao: string;
 
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => TagDto)
-  tags: TagDto[];
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  tags: string[];
 }

@@ -8,6 +8,7 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { CoffeeService } from './coffee.service';
 import { CreateCoffeeDto } from './dto/create-coffee.dto';
@@ -22,14 +23,40 @@ export class CoffeeController {
     return this.coffeeService.create(dto);
   }
 
+  @Post('coffee-create')
+  @HttpCode(HttpStatus.CREATED)
+  async createCustom(@Body() dto: CreateCoffeeDto) {
+    const cafe = await this.coffeeService.create(dto);
+    return {
+      message: 'Café criado com sucesso',
+      cafe,
+    };
+  }
+
   @Get()
   findAll() {
     return this.coffeeService.findAll();
   }
 
+  @Get(':id/detalhes')
+  async getDetalhes(@Param('id', ParseIntPipe) id: number) {
+    const cafe = await this.coffeeService.findById(id);
+    return {
+      id: cafe.id,
+      nome: cafe.nome,
+      tipo: cafe.tipo,
+      preco: cafe.preco,
+      descricao: cafe.descricao,
+      tags: cafe.tags.map(tag => tag.nome),
+    };
+  }
+
   @Get('plus-order-coffee')
-  findMaisVendidos() {
-    return this.coffeeService.findMaisVendidos();
+  findMaisVendidos(
+    @Query('nome') nome?: string,
+    @Query('tipo') tipo?: string,
+  ) {
+    return this.coffeeService.findMaisVendidos(nome, tipo);
   }
 
   @Get(':id/order')

@@ -28,10 +28,10 @@ export class CoffeeService {
       include: { tags: true },
     });
 
-    return cafes.map((cafe) => ({
+    return cafes.map(cafe => ({
       id: cafe.id,
       nome: cafe.nome,
-      tags: cafe.tags.map((tag) => tag.nome),
+      tags: cafe.tags.map(tag => tag.nome),
     }));
   }
 
@@ -58,14 +58,14 @@ export class CoffeeService {
       },
     });
 
-    return pedidos.map((item) => ({
+    return pedidos.map(item => ({
       cliente: item.pedido.cliente.nome,
       email: item.pedido.cliente.email,
       quantidade: item.quantidade,
     }));
   }
 
-  async findMaisVendidos() {
+  async findMaisVendidos(nome?: string, tipo?: string) {
     const result = await this.prisma.itemPedido.groupBy({
       by: ['cafeId'],
       _sum: {
@@ -79,25 +79,44 @@ export class CoffeeService {
       take: 3,
     });
 
-    const cafes = await this.prisma.cafe.findMany({
-      where: {
-        id: {
-          in: result.map((r) => r.cafeId),
-        },
+    const whereClause: any = {
+      id: {
+        in: result.map(r => r.cafeId),
       },
+    };
+
+    if (nome) {
+      whereClause.nome = { contains: nome, mode: 'insensitive' };
+    }
+
+    if (tipo) {
+      whereClause.tipo = { contains: tipo, mode: 'insensitive' };
+    }
+
+    const cafes = await this.prisma.cafe.findMany({
+      where: whereClause,
       include: { tags: true },
     });
 
-    return cafes.map((cafe) => {
-      const total = result.find((r) => r.cafeId === cafe.id)?._sum.quantidade || 0;
+    return cafes.map(cafe => {
+      const total = result.find(r => r.cafeId === cafe.id)?._sum.quantidade || 0;
       return {
         nome: cafe.nome,
+        tipo: cafe.tipo,
         totalComprado: total,
       };
     });
   }
 
   async remove(id: number) {
+    const cafe = await this.prisma.cafe.findUnique({
+      where: { id },
+    });
+
+    if (!cafe) {
+      throw new NotFoundException(`Café com ID ${id} não encontrado.`);
+    }
+
     await this.prisma.tagCafe.deleteMany({
       where: { cafeId: id },
     });
